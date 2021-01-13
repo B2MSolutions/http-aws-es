@@ -30,16 +30,7 @@ let zlib = require('zlib');
 class HttpAmazonESConnector extends HttpConnector {
   constructor(host, config) {
     super(host, config);
-
-    // JM: By default the elasticsearch client protocol is HTTP but the AWS SDK
-    // overrides this.
-    // As we are using a CNAME to talk to different ES Clusters the SSL handshake
-    // fails because the CNAME host doesnt match the SSL Cert hostname.
-    // To enable SSL connections to AWS ES provide the host like so:
-    // host: { host: 'host-url-here', protocol: 'https' }
-    AWS.config.update({sslEnabled: host.protocol === 'https'});
-
-    this.endpoint = new AWS.Endpoint(host.host);
+    this.endpoint = new AWS.Endpoint(host.host, { sslEnabled: true });
     let c = config.amazonES;
     if (c.getCredentials) {
       AWS.config.getCredentials((err) => {
