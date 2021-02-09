@@ -24,7 +24,6 @@
 
 let AWS = require('aws-sdk');
 let HttpConnector = require('elasticsearch/src/lib/connectors/http');
-let _ = require('elasticsearch/src/lib/utils');
 let zlib = require('zlib');
 
 class HttpAmazonESConnector extends HttpConnector {
@@ -61,7 +60,7 @@ class HttpAmazonESConnector extends HttpConnector {
     var reqParams = this.makeReqParams(params);
     // general clean-up procedure to run after the request
     // completes, has an error, or is aborted.
-    var cleanUp = _.bind(function (err) {
+    var cleanUp = err => {
       clearTimeout(timeoutId);
 
       req && req.removeAllListeners();
@@ -77,7 +76,7 @@ class HttpAmazonESConnector extends HttpConnector {
       } else {
         cb(err, response, status, headers);
       }
-    }, this);
+    };
 
     var signAndSend = () => {
       // Sign the request (Sigv4)
