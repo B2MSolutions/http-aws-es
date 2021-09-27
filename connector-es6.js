@@ -83,8 +83,12 @@ class HttpAmazonESConnector extends HttpConnector {
       var signer = new AWS.Signers.V4(request, 'es');
       signer.addAuthorization(this.creds, new Date());
 
+      var httpOptions = this.amazonES.connectTimeout ? {
+        connectTimeout: this.amazonES.connectTimeout
+      } : null;
+
       var send = new AWS.NodeHttpClient();
-      req = send.handleRequest(request, null, function (_incoming) {
+      req = send.handleRequest(request, httpOptions, function (_incoming) {
         incoming = _incoming;
         status = incoming.statusCode;
         headers = incoming.headers;
