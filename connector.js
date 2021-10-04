@@ -56,11 +56,17 @@ class HttpAmazonESConnector extends HttpConnector {
     var log = this.log;
     var response;
     var abort = false;
+    var cleanUpCalled = false;
 
     var reqParams = this.makeReqParams(params);
     // general clean-up procedure to run after the request
     // completes, has an error, or is aborted.
     var cleanUp = err => {
+      if (cleanUpCalled) {
+        return;
+      }
+
+      cleanUpCalled = true;
       clearTimeout(timeoutId);
 
       req && req.removeAllListeners();
@@ -83,12 +89,8 @@ class HttpAmazonESConnector extends HttpConnector {
       var signer = new AWS.Signers.V4(request, 'es');
       signer.addAuthorization(this.creds, new Date());
 
-      var httpOptions = this.amazonES.connectTimeout ? {
-        connectTimeout: this.amazonES.connectTimeout
-      } : null;
-
       var send = new AWS.NodeHttpClient();
-      req = send.handleRequest(request, httpOptions, function (_incoming) {
+      req = send.handleRequest(request, null, function (_incoming) {
         incoming = _incoming;
         status = incoming.statusCode;
         headers = incoming.headers;
@@ -109,6 +111,21 @@ class HttpAmazonESConnector extends HttpConnector {
       }, cleanUp);
 
       req.on('error', cleanUp);
+
+      var connectTimeout = this.amazonES.connectTimeout;
+      if (connectTimeout) {
+        req.on('socket', function (socket) {
+          if (socket.connecting) {
+            timeoutId = setTimeout(function connectTimeout() {
+              req.abort();
+            }, connectTimeout);
+            socket.on('connect', function () {
+              clearTimeout(timeoutId);
+              timeoutId = null;
+            });
+          }
+        });
+      }
 
       req.setNoDelay(true);
       req.setSocketKeepAlive(true);
