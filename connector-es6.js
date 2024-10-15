@@ -22,7 +22,7 @@
  * @class HttpConnector
  */
 
-let AWS = require('aws-sdk');
+let AWS = require('aws-sdk/global');
 let HttpConnector = require('elasticsearch/src/lib/connectors/http');
 let zlib = require('zlib');
 

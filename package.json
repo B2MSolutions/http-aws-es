@@ -18,7 +18,7 @@
   ],
   "main": "connector.js",
   "dependencies": {
-    "aws-sdk": "2.921.0"
+    "aws-sdk": "2.1691.0"
   },
   "devDependencies": {
     "babel-cli": "6.23.0",
